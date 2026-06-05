@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.git/
+.gitignore
+.env
+*.sqlite3
+staticfiles/
+media/
+.pytest_cache/
+.mypy_cache/
+*.Zone.Identifier
+Assessment_Guide.pdf

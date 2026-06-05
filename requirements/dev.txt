@@ -1,0 +1,3 @@
+-r base.txt
+# Dev/test tooling. Tests use Django's built-in test runner (assertNumQueries),
+# so no extra test framework is required here yet.
