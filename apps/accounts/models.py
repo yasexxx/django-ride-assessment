@@ -16,7 +16,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         DRIVER = "driver", "Driver"
         RIDER = "rider", "Rider"
 
-    # Spec fields (id_user is the auto PK).
+    # Spec fields.
+    id_user = models.BigAutoField(primary_key=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.RIDER)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
@@ -34,6 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS: list[str] = []
 
     class Meta:
+        # Pinned to the assessment's "User" table name by explicit project configuration
         db_table = "user"
 
     def __str__(self) -> str:
