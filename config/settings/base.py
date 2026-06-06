@@ -109,6 +109,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "apps.common.pagination.DefaultPagination",
     "PAGE_SIZE": 20,
+    "EXCEPTION_HANDLER": "apps.common.exception_handler.handle_exception",
 }
 
 # --- I18N / static ----------------------------------------------------------
