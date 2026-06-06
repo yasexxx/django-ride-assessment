@@ -32,12 +32,18 @@ apps/
     views.py         UserViewSet, ObtainAuthToken
     urls.py          Registers UserViewSet on the shared router; auth/token/ endpoint
   rides/             Ride + RideEvent bounded context
-    constants.py     Bounded-context constants (RECENT_EVENTS_WINDOW, TODAYS_RIDE_EVENTS_ATTR)
+    constants.py     Bounded-context constants (RECENT_EVENTS_WINDOW, TODAYS_RIDE_EVENTS_ATTR, RideOrdering)
+    filters.py       django-filter FilterSet for rides (status, rider_email)
     models.py        Ride, RideEvent
-    selectors.py     Read-side queryset builders (list_rides)
+    selectors.py     Read-side queryset builders (list_rides, KNN nearest-neighbour ordering)
     serializers.py   RideSerializer, RideListSerializer, RideEventSerializer
     views.py         RideViewSet, RideEventViewSet
     urls.py          Registers viewsets on the shared router
+
+  accounts/
+    management/
+      commands/
+        seed.py      Management command to seed initial rider and driver users
 
 requirements/
   base.txt           Core dependencies
@@ -84,7 +90,7 @@ from config.router import router
 from apps.rides.views import RideViewSet, RideEventViewSet
 
 router.register("rides", RideViewSet, basename="ride")
-router.register("ride-events", RideEventViewSet, basename="rideevent")
+router.register("ride-events", RideEventViewSet, basename="ride-event")
 
 # config/urls.py
 from config.router import router
@@ -126,3 +132,24 @@ curl http://localhost:8000/api/v1/rides/
 
 Note: To access Django Rest Framework (DRF) inteface must be logged in as admin user. [Learn more.](https://www.w3schools.com/django/django_admin_create_user.php)
 
+## Filtering and ordering rides
+
+`GET /api/v1/rides/` accepts the following query parameters:
+
+| Parameter | Type | Description |
+|---|---|---|
+| `status` | string | Filter by ride status (matches `Ride.Status` choices) |
+| `rider_email` | string | Filter by exact rider email address |
+| `ordering` | string | Order results (e.g. `pickup_distance`, `-pickup_distance`) |
+
+Proximity ordering uses the PostGIS KNN operator (`<->`) to perform an index-ordered nearest-neighbour scan via the GiST index on `pickup_point`, avoiding a full-table distance computation.
+
+## Seeding development data
+
+A management command seeds the database with a default set of riders and drivers:
+
+```bash
+docker compose run --rm web python manage.py seed
+```
+
+This creates 10 riders (`rider_1@email.com` … `rider_10@email.com`) and 10 drivers (`driver_1@email.com` … `driver_10@email.com`), all with password `Test12345`. Existing users are skipped (idempotent).

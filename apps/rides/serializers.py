@@ -16,6 +16,13 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from apps.accounts.serializers import UserSerializer
+from apps.common.constants import (
+    LATITUDE_MAX,
+    LATITUDE_MIN,
+    LONGITUDE_MAX,
+    LONGITUDE_MIN,
+)
+from apps.rides.constants import RideOrdering
 from apps.rides.models import Ride, RideEvent
 
 User = get_user_model()
@@ -90,3 +97,29 @@ class RideListSerializer(serializers.ModelSerializer):
             "pickup_time",
             "todays_ride_events",
         ]
+
+
+class RideListQuerySerializer(serializers.Serializer):
+    """Validates the Ride List sorting query parameters.
+
+    ``ordering`` selects the sort; ``pickup_lat`` / ``pickup_lng`` provide the
+    reference point and are required (and bounded) only when sorting by
+    distance.
+    """
+
+    ordering = serializers.ChoiceField(choices=RideOrdering.ALL, required=False)
+    pickup_lat = serializers.FloatField(
+        required=False, min_value=LATITUDE_MIN, max_value=LATITUDE_MAX
+    )
+    pickup_lng = serializers.FloatField(
+        required=False, min_value=LONGITUDE_MIN, max_value=LONGITUDE_MAX
+    )
+
+    def validate(self, attrs: dict) -> dict:
+        if attrs.get("ordering") == RideOrdering.DISTANCE and not (
+            "pickup_lat" in attrs and "pickup_lng" in attrs
+        ):
+            raise serializers.ValidationError(
+                "pickup_lat and pickup_lng are required when ordering by distance."
+            )
+        return attrs
