@@ -27,19 +27,15 @@ class AdminModelViewSet(ModelViewSet):
     def finalize_response(self, request, response, *args, **kwargs) -> Response:
         response = super().finalize_response(request, response, *args, **kwargs)
 
-        # 204 No Content has no body — leave it alone.
-        if response.data is None:
+        is_wrapped = isinstance(response.data, dict) and "success" in response.data
+
+        if response.data is None or is_wrapped or response.status_code >= 400:
             return response
 
-        # Already wrapped by the exception handler (error path).
-        if isinstance(response.data, dict) and "success" in response.data:
-            return response
-
-        if response.status_code < 400:
-            response.data = {
-                "success": True,
-                "message": _STATUS_MESSAGES.get(response.status_code, "OK"),
-                "data": response.data,
-            }
+        response.data = {
+            "success": True,
+            "message": _STATUS_MESSAGES.get(response.status_code, "OK"),
+            "data": response.data,
+        }
 
         return response
