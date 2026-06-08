@@ -2,6 +2,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from apps.accounts.services import create_user, update_user
+
 User = get_user_model()
 
 
@@ -31,15 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id_user"]
 
     def create(self, validated_data: dict) -> User:
-        # Bypasses super().create() deliberately: user creation must route
-        # through the manager to hash the password.
-        password = validated_data.pop("password", None)
-        return User.objects.create_user(password=password, **validated_data)
+        return create_user(validated_data)
 
     def update(self, instance: User, validated_data: dict) -> User:
-        password = validated_data.pop("password", None)
-        user = super().update(instance, validated_data)
-        if password is not None:
-            user.set_password(password)
-            user.save(update_fields=["password"])
-        return user
+        return update_user(instance, validated_data)

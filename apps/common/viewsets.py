@@ -11,18 +11,14 @@ _STATUS_MESSAGES = {
 }
 
 
-class AdminModelViewSet(ModelViewSet):
-    """Base ModelViewSet enforcing admin-only access.
+class ResponseEnvelopeMixin:
+    """Wraps success responses in the standard API envelope.
 
-    Declares the "whole API is admin-only" rule exactly once; every resource
-    viewset inherits it instead of repeating ``permission_classes``.
+    Shape: ``{"success": true, "message": "...", "data": ...}``
 
-    Also wraps every success response in the standard envelope:
-    ``{"success": true, "message": "...", "data": ...}``
-    so callers always see a consistent shape regardless of action.
+    Kept separate from auth so any future viewset can use the envelope
+    without being tied to the admin permission rule.
     """
-
-    permission_classes = [IsAdminRole]
 
     def finalize_response(self, request, response, *args, **kwargs) -> Response:
         response = super().finalize_response(request, response, *args, **kwargs)
@@ -39,3 +35,13 @@ class AdminModelViewSet(ModelViewSet):
         }
 
         return response
+
+
+class AdminOnlyMixin:
+    """Enforces admin-only access. Declared once, inherited everywhere."""
+
+    permission_classes = [IsAdminRole]
+
+
+class AdminModelViewSet(AdminOnlyMixin, ResponseEnvelopeMixin, ModelViewSet):
+    """Composed base: admin gate + standard response envelope."""

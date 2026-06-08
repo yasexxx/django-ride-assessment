@@ -78,3 +78,20 @@ def order_rides(
         return rides.order_by(ordering, "id_ride")
 
     return rides
+
+
+def build_ride_list_queryset(validated_data: dict) -> QuerySet[Ride]:
+    """Assemble the queryset for the Ride List API from pre-validated query params.
+
+    Centralises coordinate construction and ordering so the view stays thin.
+    Must be called with data from ``RideListQuerySerializer.validated_data``.
+    """
+    ordering = validated_data.get("ordering")
+    pickup_point = None
+    if ordering == RideOrdering.DISTANCE:
+        pickup_point = Point(
+            validated_data["pickup_lng"],
+            validated_data["pickup_lat"],
+            srid=WGS84_SRID,
+        )
+    return order_rides(list_rides(), ordering=ordering, pickup_point=pickup_point)

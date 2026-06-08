@@ -24,16 +24,21 @@ from apps.common.constants import (
 )
 from apps.rides.constants import RideOrdering
 from apps.rides.models import Ride, RideEvent
+from apps.rides.services import create_ride, create_ride_event, update_ride
 
 User = get_user_model()
 
 
 class RideEventSerializer(serializers.ModelSerializer):
     """Serializes ride event records."""
+
     class Meta:
         model = RideEvent
         fields = ["id_ride_event", "id_ride", "description", "created_at"]
         read_only_fields = ["id_ride_event", "created_at"]
+
+    def create(self, validated_data: dict) -> RideEvent:
+        return create_ride_event(validated_data)
 
 
 class RideSerializer(serializers.ModelSerializer):
@@ -67,6 +72,12 @@ class RideSerializer(serializers.ModelSerializer):
         if user.role != User.Role.DRIVER:
             raise serializers.ValidationError("Must be a user with role 'driver'.")
         return user
+
+    def create(self, validated_data: dict) -> Ride:
+        return create_ride(validated_data)
+
+    def update(self, instance: Ride, validated_data: dict) -> Ride:
+        return update_ride(instance, validated_data)
 
 
 class RideListSerializer(serializers.ModelSerializer):
