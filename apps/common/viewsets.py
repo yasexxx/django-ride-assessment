@@ -7,7 +7,6 @@ from apps.common.permissions import IsAdminRole
 _STATUS_MESSAGES = {
     200: "OK",
     201: "Created Successfully",
-    202: "Accepted",
 }
 
 
